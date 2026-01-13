@@ -9,7 +9,7 @@ export const generateMetadata = ({
             {
                 rel: "icon",
                 sizes: "32x32",
-                url: "/icons/icon.svg",
+                url: "/logo.png",
             },
         ]
     }

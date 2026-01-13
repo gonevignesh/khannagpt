@@ -9,14 +9,20 @@ import { LogOutIcon, SettingsIcon, UserCogIcon } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Button } from "./ui/button";
 
 const UserAccount = ({ user }: { user: User }) => {
 
     const router = useRouter();
 
-     const { isOpen, setIsOpen } = useInstructions();
+    const { setIsOpen } = useInstructions();
 
-     const { isOpen: isOpenSettings, setIsOpen: setIsOpenSettings } = useSettings();
+    const { setIsOpen: setIsOpenSettings } = useSettings();
+
+    // Get display name - fallback to email prefix if no full_name
+    const displayName = user?.user_metadata?.full_name
+        || user?.email?.split('@')[0]
+        || 'User';
 
     const handleSignout = async () => {
         await signOut();
@@ -26,30 +32,32 @@ const UserAccount = ({ user }: { user: User }) => {
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild className="cursor-pointer">
-                {user?.user_metadata?.picture ? (
-                    <Image
-                        src={user?.user_metadata?.picture}
-                        alt="U"
-                        width={1024}
-                        height={1024}
-                        className="w-8 h-8 rounded-full"
-                    />
-                ) : (
-                    <Avvvatars
-                        value={user?.user_metadata?.full_name}
-                        border
-                        size={32}
-                        radius={999}
-                        borderSize={1}
-                        borderColor="hsl(var(--border))"
-                    />
-                )}
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full p-0 h-8 w-8">
+                    {user?.user_metadata?.picture ? (
+                        <Image
+                            src={user?.user_metadata?.picture}
+                            alt="User"
+                            width={32}
+                            height={32}
+                            className="w-8 h-8 rounded-full"
+                        />
+                    ) : (
+                        <Avvvatars
+                            value={displayName}
+                            border
+                            size={32}
+                            radius={999}
+                            borderSize={1}
+                            borderColor="hsl(var(--border))"
+                        />
+                    )}
+                </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="p-2 w-60">
                 <div className="flex flex-col items-start px-3.5 py-1.5">
                     <h5 className="text-sm font-medium capitalize">
-                        {user?.user_metadata.full_name}
+                        {displayName}
                     </h5>
                     <p className="text-xs text-muted-foreground mt-0.5">
                         {user?.email}

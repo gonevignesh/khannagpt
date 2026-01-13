@@ -1,18 +1,38 @@
 export const PROMPTS = [
+    // Learning & Exams
     {
-        title: "Social Media Post Ideas",
-        description: "with trending topics and hashtags",
+        title: "Explain regression",
+        description: "in simple words with examples",
     },
     {
-        title: "Video Content Ideas",
-        description: "for your next YouTube video",
+        title: "Difference between BFS and DFS",
+        description: "with code examples",
+    },
+    // Coding Help
+    {
+        title: "Write Python code for BFS",
+        description: "with step-by-step explanation",
     },
     {
-        title: "Infographic Concepts",
-        description: "about your industry or product",
+        title: "Build a calculator in Python",
+        description: "with clean, commented code",
+    },
+    // AI & Projects
+    {
+        title: "Suggest AI project ideas",
+        description: "for final year students",
     },
     {
-        title: "Whitepaper Topics",
-        description: "to establish thought leadership",
-    }
+        title: "Explain machine learning models",
+        description: "with practical use cases",
+    },
+    // Productivity
+    {
+        title: "Create a study plan",
+        description: "for upcoming exams",
+    },
+    {
+        title: "Summarize these notes",
+        description: "into key bullet points",
+    },
 ];

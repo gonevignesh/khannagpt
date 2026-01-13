@@ -10,14 +10,18 @@ interface Props {
 
 const Providers = ({ children }: Props) => {
     return (
-        <>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+        >
             <Toaster
                 richColors
-                theme="light"
                 position="top-center"
             />
             {children}
-        </>
+        </ThemeProvider>
     );
 };
 

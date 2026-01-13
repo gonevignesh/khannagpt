@@ -1,10 +1,10 @@
 "use server";
 
-import { createClient, google } from "@/lib";
+import { createClient, groq } from "@/lib";
 import { generateText } from "ai";
 import { revalidatePath } from "next/cache";
 
-export type Model = "models/gemini-1.5-pro-latest" | "llama3-8b-8192";
+export type Model = "llama-3.3-70b-versatile" | "llama-3.1-8b-instant";
 
 export type Message = {
     id: string;
@@ -80,10 +80,18 @@ export const createNewChat = async (firstMessage: string): Promise<{ chatId: str
 
         const { data: { user }, error: userError } = await supabase.auth.getUser();
 
+        // GUEST MODE: Skip database, just generate AI response
         if (!user) {
-            throw new Error('Not authenticated');
+            const guestChatId = `guest-${Date.now()}`;
+            const aiResponse = await generateAIResponse([], firstMessage);
+
+            return {
+                chatId: guestChatId,
+                aiMessage: aiResponse,
+            };
         }
 
+        // Authenticated user - save to database
         const title = await generateTitle(firstMessage);
 
         const { data: chat, error: chatError } = await supabase
@@ -113,7 +121,7 @@ export const createNewChat = async (firstMessage: string): Promise<{ chatId: str
             throw new Error(`Failed to save message: ${messageError.message}`);
         }
 
-        const aiResponse = await generateAIResponse([userMessage], firstMessage, user.user_metadata.instructions);
+        const aiResponse = await generateAIResponse([userMessage], firstMessage, user?.user_metadata?.instructions);
 
         const { data: aiMessage, error: aiMessageError } = await supabase
             .from('messages')
@@ -151,9 +159,8 @@ export const updateChat = async (chatId: string, title: string): Promise<string>
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
-        if (!user) {
-            throw new Error('Not authenticated');
-        }
+        // GUEST MODE: Use a guest user ID if not authenticated
+        const userId = user?.id || 'guest-user';
 
         const { data: updatedChat, error } = await supabase
             .from('chats')
@@ -162,7 +169,7 @@ export const updateChat = async (chatId: string, title: string): Promise<string>
                 updated_at: new Date().toISOString()
             })
             .eq('id', chatId)
-            .eq('user_id', user.id)
+            .eq('user_id', userId)
             .select()
             .single();
 
@@ -184,15 +191,14 @@ export const deleteChat = async (chatId: string): Promise<void> => {
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
-        if (!user) {
-            throw new Error('Not authenticated');
-        }
+        // GUEST MODE: Use a guest user ID if not authenticated
+        const userId = user?.id || 'guest-user';
 
         const { error: chatError } = await supabase
             .from('chats')
             .delete()
             .eq('id', chatId)
-            .eq('user_id', user.id);
+            .eq('user_id', userId);
 
         if (chatError) {
             throw new Error(`Failed to delete chat: ${chatError.message}`);
@@ -212,14 +218,13 @@ export const getUserChats = async (): Promise<Chat[]> => {
 
         const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-        if (userError || !user) {
-            return [];
-        }
+        // GUEST MODE: Use a guest user ID if not authenticated
+        const userId = user?.id || 'guest-user';
 
         const { data: chats, error } = await supabase
             .from('chats')
             .select('*')
-            .eq('user_id', user.id)
+            .eq('user_id', userId)
             .order('updated_at', { ascending: false });
 
         if (error) {
@@ -240,15 +245,14 @@ export const getChatWithMessages = async (chatId: string): Promise<{ chat: Chat 
 
         const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-        if (userError || !user) {
-            return { chat: null, messages: [] };
-        }
+        // GUEST MODE: Use a guest user ID if not authenticated
+        const userId = user?.id || 'guest-user';
 
         const { data: chat, error: chatError } = await supabase
             .from('chats')
             .select('*')
             .eq('id', chatId)
-            .eq('user_id', user.id)
+            .eq('user_id', userId)
             .single();
 
         if (chatError || !chat) {
@@ -279,10 +283,30 @@ export const addMessageToChat = async (chatId: string, content: string, role: 'u
 
         const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-        if (userError || !user) {
-            throw new Error('Not authenticated');
+        // GUEST MODE: Skip database, just generate AI response
+        if (!user || chatId.startsWith('guest-')) {
+            const aiResponse = await generateAIResponse([], content);
+
+            const userMessage: Message = {
+                id: `msg-${Date.now()}`,
+                chat_id: chatId,
+                content: content,
+                role: 'user',
+                created_at: new Date().toISOString()
+            };
+
+            const aiMessageObj: Message = {
+                id: `msg-${Date.now() + 1}`,
+                chat_id: chatId,
+                content: aiResponse,
+                role: 'assistant',
+                created_at: new Date().toISOString()
+            };
+
+            return { userMessage, aiMessage: aiMessageObj };
         }
 
+        // Authenticated user - use database
         const { data: chat, error: chatError } = await supabase
             .from('chats')
             .select('id')
@@ -314,7 +338,7 @@ export const addMessageToChat = async (chatId: string, content: string, role: 'u
             .eq('id', chatId);
 
         const messages = await getChatMessages(chatId);
-        const aiResponse = await generateAIResponse(messages, content, user.user_metadata.instructions);
+        const aiResponse = await generateAIResponse(messages, content, user?.user_metadata?.instructions);
 
         const { data: aiMessage, error: aiMessageError } = await supabase
             .from('messages')
@@ -357,7 +381,7 @@ const getChatMessages = async (chatId: string): Promise<Message[]> => {
 
 export const generateAIResponse = async (messages: Message[], userMessage: string, instructions?: string, enableWebSearch: boolean = false): Promise<string> => {
     try {
-        const model = "gemini-2.0-flash";
+        const model = "llama-3.3-70b-versatile";
 
         const formattedMessages = messages.map(msg => ({
             role: msg.role as 'user' | 'assistant',
@@ -369,57 +393,50 @@ export const generateAIResponse = async (messages: Message[], userMessage: strin
             content: userMessage
         });
 
-        const tools = enableWebSearch ? {
-            google_search: {}
-        } : undefined;
-
         const { text } = await generateText({
-            model: google(model),
+            model: groq(model),
             messages: formattedMessages,
             temperature: 0.7,
-            system: `You are a helpful AI assistant that provides well-formatted responses using Markdown. ${instructions ? `Here are user instructions keep them in mind: ${instructions}` : ''} Follow these guidelines:
+            system: `You are KhannaGPT, a Smart AI Assistant for Learning, Coding & Productivity.
 
-                ## Formatting Rules
-                - Use proper Markdown syntax for all formatting
-                - For code blocks, specify the language after the opening backticks
-                - Use tables for tabular data (directly as markdown, not in code blocks)
-                - Use headings to structure your response
-                - Use lists (numbered or bulleted) for step-by-step instructions
-                - NEVER put markdown tables inside code blocks
+## Your Personality
+- You are a friendly teacher and professional assistant combined
+- You explain concepts step-by-step, starting simple then adding technical depth
+- You are encouraging, patient, and exam-friendly in your responses
+- You provide clean code, real examples, and practical guidance
+- Your tone is casual but not childish - perfect for students and developers
 
-                ## Response Style
-                - Be concise but thorough
-                - Use bold (**text**) for emphasis
-                - Use italics (*text*) for subtle emphasis
-                - Use code blocks with language specification for code examples
-                - Use blockquotes for important notes or warnings
-                - Use markdown tables (not in code blocks) for comparing items or showing structured data
+${instructions ? `## User Instructions\n${instructions}\n` : ''}
 
-                ## Code Examples (use code blocks with language specifier)
-                \`\`\`typescript
-                interface User {
-                id: string;
-                name: string;
-                email: string;
-                }
-                \`\`\`
+## Formatting Rules
+- Use proper Markdown syntax for all formatting
+- For code blocks, ALWAYS specify the programming language after the opening backticks
+- Use tables for tabular data (directly as markdown, not in code blocks)
+- Use headings to structure your response
+- Use numbered lists for step-by-step instructions
+- Use bullet points for features or options
+- NEVER put markdown tables inside code blocks
 
-                ## Tables (direct markdown, no code blocks)
-                | Feature | Description | Status |
-                |---------|-------------|--------|
-                | Markdown | Support for rich text | ✅ |
-                | Tables | Data organization | ✅ |
-                | Code Blocks | Syntax highlighting | ✅ |
+## Response Style
+- Be concise but thorough
+- Use **bold** for key terms and emphasis
+- Use *italics* for subtle emphasis or new terms
+- Use code blocks with language specification for ALL code examples
+- Use > blockquotes for important notes, tips, or warnings
+- Use markdown tables for comparing items or structured data
 
-                ## Lists
-                1. First item
-                2. Second item
-                - Nested item
-                - Another nested item
+## For Exam/Study Questions
+- Provide structured, mark-worthy answers
+- Include definitions, examples, and diagrams where helpful
+- Format for easy memorization
 
-                Always format your responses properly and use appropriate markdown elements to enhance readability.
-            `,
-            tools
+## For Coding Questions
+- Always provide working, clean code
+- Add helpful comments in the code
+- Explain the logic step by step
+- Suggest improvements or best practices
+
+Always format your responses properly and use appropriate markdown elements to enhance readability.`,
         });
 
         return text;
@@ -448,19 +465,19 @@ const searchWeb = async (query: string): Promise<Array<{ title: string; link: st
 const generateTitle = async (message: string): Promise<string> => {
     try {
         const { text } = await generateText({
-            model: google('gemini-2.0-flash'),
+            model: groq('llama-3.1-8b-instant'),
             prompt: message,
-            system: `\n
-            - you will generate a short title based on the first message a user begins a conversation with
-            - ensure it is not more than 50 characters long
-            - the title should be a summary of the user's message
-            - do not use quotes or colons
-            - do not use any special characters or symbols`,
+            system: `Generate a short title based on the user's message.
+Rules:
+- Maximum 50 characters
+- Summarize the main topic
+- No quotes, colons, or special characters
+- Simple and descriptive`,
         });
         return text;
     } catch (error) {
         console.error('Error generating title:', error);
-        return 'Sorry, I encountered an error processing your request. Please try again.';
+        return 'New Chat';
     }
 };
 

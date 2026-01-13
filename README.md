@@ -1,8 +1,8 @@
-# Aether AI
+# KhannaGPT
 
-<img src="https://github.com/user-attachments/assets/920daec7-0693-4bdb-8c8d-f7a4b7ec8c81" alt="Aether Logo" width="50" height="50">
+<img src="/logo.png" alt="KhannaGPT Logo" width="50" height="50">
 
-Aether is your **AI-powered productivity hub**.  
+KhannaGPT is your **AI-powered productivity hub**.  
 It can generate code with syntax highlights, to tables, images, and real-time search in chat history
 
 [Watch Demo](https://www.tella.tv/video/shreyass-video-6tsl)
@@ -71,8 +71,8 @@ It can generate code with syntax highlights, to tables, images, and real-time se
 
 1. Clone the repository
    ```bash
-   git clone https://github.com/Shreyas-29/aether.git
-   cd aether
+   git clone https://github.com/username/khannagpt.git
+   cd khannagpt
    ```
 
 2. Install dependencies
@@ -122,4 +122,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 [Portfolio](https://heyshreyas.in) | [Email](mailto:shreyassihasane@gmail.com)
 
-Project Link: [https://aether-ai-chatbot.vercel.app](https://aether-ai-chatbot.vercel.app)
+Project Link: [http://localhost:3000](http://localhost:3000)

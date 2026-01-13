@@ -30,7 +30,7 @@ export default async function RootLayout({
     const chats = await getUserChats();
 
     return (
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning>
             <body
                 className={cn(
                     "min-h-screen bg-background text-foreground antialiased",
@@ -39,13 +39,13 @@ export default async function RootLayout({
             >
                 <Providers>
                     <SearchModal chats={chats} />
-                    <SettingsModal user={user!} />
-                    <InstructionsModal user={user!} />
-                    <DesktopHeader user={user!} />
-                    <MobileHeader user={user!} chats={chats} />
+                    <SettingsModal user={user} />
+                    <InstructionsModal user={user} />
+                    <DesktopHeader user={user} />
+                    <MobileHeader user={user} chats={chats} />
                     <div className="relative flex grow h-dvh w-full mx-auto overflow-auto -14 z-0">
-                        <DesktopSidebar user={user!} chats={chats} />
-                        <MainWrapper user={user!}>
+                        <DesktopSidebar user={user} chats={chats} />
+                        <MainWrapper user={user}>
                             {children}
                         </MainWrapper>
                     </div>

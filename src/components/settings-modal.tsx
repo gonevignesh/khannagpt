@@ -7,14 +7,30 @@ import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger, } from "@/components/ui/tabs";
 import { TABS } from '@/constants';
 import { useIsMobile, useSettings, useSpeech, useVoices } from "@/hooks";
+import { cn } from '@/utils';
 import { User } from '@supabase/supabase-js';
 import { motion } from "framer-motion";
 import { ChevronDownIcon, XIcon } from "lucide-react";
+import { useTheme } from 'next-themes';
 import Image from "next/image";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from "sonner";
 import { Button } from "./ui/button";
+
+// Theme button component
+const ThemeButton = ({ label, icon, isActive, onClick }: { label: string; icon: string; isActive: boolean; onClick: () => void }) => (
+    <button
+        onClick={onClick}
+        className={cn(
+            "flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all",
+            isActive ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
+        )}
+    >
+        <span className="text-2xl">{icon}</span>
+        <span className="text-sm font-medium">{label}</span>
+    </button>
+);
 
 interface Props {
     user: User | null;
@@ -33,6 +49,8 @@ const SettingsModal = ({ user }: Props) => {
     const { voices, selectedVoice, setSelectedVoice } = useVoices();
 
     const isMobile = useIsMobile();
+
+    const { theme: currentTheme, setTheme } = useTheme();
 
     const [temperature, setTemperature] = useState<number>(7);
     const [isActive, setIsActive] = useState<string>("general");
@@ -122,20 +140,26 @@ const SettingsModal = ({ user }: Props) => {
                                     </span>
                                     <div className="flex items-center gap-x-2">
                                         <div className="mt-2 w-14 h-14">
-                                            <Image
-                                                src={user?.user_metadata?.picture!}
-                                                alt={user?.user_metadata?.full_name!}
-                                                width={1024}
-                                                height={1024}
-                                                className="rounded-full"
-                                            />
+                                            {user?.user_metadata?.picture ? (
+                                                <Image
+                                                    src={user.user_metadata.picture}
+                                                    alt={user?.user_metadata?.full_name || 'User'}
+                                                    width={1024}
+                                                    height={1024}
+                                                    className="rounded-full"
+                                                />
+                                            ) : (
+                                                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-xl font-medium text-primary">
+                                                    G
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="ml-4 flex flex-col">
                                             <span className="text-sm font-medium capitalize">
-                                                {user?.user_metadata?.full_name}
+                                                {user?.user_metadata?.full_name || 'Guest User'}
                                             </span>
                                             <span className="text-sm text-muted-foreground">
-                                                {user?.email}
+                                                {user?.email || 'Not signed in'}
                                             </span>
                                         </div>
                                     </div>
@@ -166,19 +190,28 @@ const SettingsModal = ({ user }: Props) => {
                                     <span className="text-sm font-medium">
                                         Change theme
                                     </span>
-                                    <div className="grid w-full grid-cols-3 gap-4 p-0.5 mt-3 text-sm">
-                                        {/* {THEMES.map((item) => (
-                                                <div
-                                                    key={item.title}
-                                                    onClick={() => setTheme(item.value)}
-                                                    className={cn(
-                                                        "flex-1 w-full rounded-2xl cursor-pointer",
-                                                        item.value === theme ? "border-2 border-ring" : "border-2 border-transparent",
-                                                    )}
-                                                >
-                                                    <item.icon className="w-full h-full rounded-[14.5px]" />
-                                                </div>
-                                            ))} */}
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                        Choose your preferred appearance
+                                    </p>
+                                    <div className="grid w-full grid-cols-3 gap-3 mt-4">
+                                        <ThemeButton
+                                            label="Light"
+                                            icon="☀️"
+                                            isActive={currentTheme === "light"}
+                                            onClick={() => setTheme("light")}
+                                        />
+                                        <ThemeButton
+                                            label="Dark"
+                                            icon="🌙"
+                                            isActive={currentTheme === "dark"}
+                                            onClick={() => setTheme("dark")}
+                                        />
+                                        <ThemeButton
+                                            label="System"
+                                            icon="💻"
+                                            isActive={currentTheme === "system"}
+                                            onClick={() => setTheme("system")}
+                                        />
                                     </div>
                                 </div>
                             </TabsContent>
@@ -210,7 +243,7 @@ const SettingsModal = ({ user }: Props) => {
                                 </div>
                                 <div className="flex flex-col w-full mt-4 py-1">
                                     <span className="text-sm font-medium">
-                                        Crativity
+                                        Creativity
                                     </span>
                                     <div className="pr-2 text-sm text-muted-foreground">
                                         <Slider

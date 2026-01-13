@@ -1,11 +1,11 @@
 import { createClient } from "./supabase/server";
 import { supabase } from "./supabase/client";
 import { updateSession } from "./supabase/middleware";
-import { google } from "./google";
+import { groq } from "./groq";
 
 export {
     createClient,
     supabase,
     updateSession,
-    google,
+    groq,
 };

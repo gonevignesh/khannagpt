@@ -1,27 +1,39 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import React, { useEffect } from "react";
+import { usePathname } from "next/navigation";
+import React, { useEffect, useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { Button, buttonVariants } from "./ui/button";
 import { cn } from "@/utils";
 import Icons from "./global/icons";
 import UserAccount from "./user-account";
 import Link from "next/link";
+import Image from "next/image";
 import { User } from "@supabase/supabase-js";
 import { useSidebar } from "@/hooks";
+import { useTheme } from "next-themes";
+import { MoonIcon, SunIcon } from "lucide-react";
 
 interface Props {
-    user: User
+    user: User | null;
 }
 
 const DesktopHeader = ({ user }: Props) => {
 
-    const router = useRouter();
-
     const pathname = usePathname();
 
     const { isOpen: isOpenSidebar, setIsOpen: setIsOpenSidebar } = useSidebar();
+
+    const { theme, setTheme, resolvedTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const toggleTheme = () => {
+        setTheme(resolvedTheme === "dark" ? "light" : "dark");
+    };
 
     useEffect(() => {
 
@@ -32,7 +44,7 @@ const DesktopHeader = ({ user }: Props) => {
             <div className="flex items-center justify-between w-full h-full mx-auto">
                 <div className="flex items-center gap-x-2 text-muted-foreground">
                     <Link href="/" className="mr-2 text-foreground">
-                        <Icons.icon className="size-5" />
+                        <Image src="/logo.png" alt="Brand Logo" width={32} height={32} className="size-8" />
                     </Link>
                     {user && (
                         <TooltipProvider delayDuration={0}>
@@ -53,42 +65,48 @@ const DesktopHeader = ({ user }: Props) => {
                                     Sidebar
                                 </TooltipContent>
                             </Tooltip>
-                            {/* <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        onClick={() => router.push("/")}
-                                        className={cn(
-                                            "transition transform duration-300",
-                                            // TODO: make a array of protected routes in constants to show auth
-                                            // isOpenSidebar ? "translate-x-[152px]" : "translate-x-0"
-                                        )}
-                                    >
-                                        <Icons.create className="size-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    New chat
-                                </TooltipContent>
-                            </Tooltip> */}
                         </TooltipProvider>
                     )}
                 </div>
                 <React.Suspense fallback={<div>
                     wait a moment
                 </div>}>
-                    <div className="flex items-center gap-x-4 text-muted-foreground">
+                    <div className="flex items-center gap-x-2 text-muted-foreground">
+                        {/* Theme Toggle Button */}
+                        {mounted && (
+                            <TooltipProvider delayDuration={0}>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={toggleTheme}
+                                            className="transition-all"
+                                        >
+                                            {resolvedTheme === "dark" ? (
+                                                <SunIcon className="size-4" />
+                                            ) : (
+                                                <MoonIcon className="size-4" />
+                                            )}
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+
                         {user ? (
                             <>
                                 <UserAccount user={user} />
                             </>
                         ) : (
                             <>
-                                <Link href="/signin" className={buttonVariants({ size: "sm", variant: "outline" })}>
+                                <Link href="/auth/signin" className={buttonVariants({ size: "sm", variant: "outline" })}>
                                     Log in
                                 </Link>
-                                <Link href="/signin" className={buttonVariants({ size: "sm", })}>
+                                <Link href="/auth/signup" className={buttonVariants({ size: "sm", })}>
                                     Sign Up
                                 </Link>
                             </>

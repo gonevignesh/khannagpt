@@ -2,10 +2,15 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
+    // GUEST MODE: Skip all authentication checks
+    // All routes are now accessible without login
+    // Remove or modify this section when you want to re-enable authentication
+
     let supabaseResponse = NextResponse.next({
         request,
     })
 
+    // Still create the Supabase client to maintain session for logged-in users
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -14,12 +19,12 @@ export async function updateSession(request: NextRequest) {
                 getAll() {
                     return request.cookies.getAll()
                 },
-                setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+                setAll(cookiesToSet: any) {
+                    cookiesToSet.forEach(({ name, value, options }: any) => request.cookies.set(name, value))
                     supabaseResponse = NextResponse.next({
                         request,
                     })
-                    cookiesToSet.forEach(({ name, value, options }) =>
+                    cookiesToSet.forEach(({ name, value, options }: any) =>
                         supabaseResponse.cookies.set(name, value, options)
                     )
                 },
@@ -27,27 +32,9 @@ export async function updateSession(request: NextRequest) {
         }
     );
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    // Get user but don't enforce authentication
+    await supabase.auth.getUser()
 
-    const publicPaths = [
-        '/auth/signin',
-        '/auth/signup',
-        '/auth/callback',
-        '/auth/auth-code-error',
-        '/'
-    ];
-
-    if (
-        !user &&
-        !publicPaths.includes(request.nextUrl.pathname) 
-        // !request.nextUrl.pathname.startsWith('/auth')
-    ) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/auth/signin'
-        return NextResponse.redirect(url)
-    }
-
+    // GUEST MODE: All routes are public, no redirects
     return supabaseResponse
 };

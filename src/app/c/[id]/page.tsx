@@ -25,7 +25,7 @@ const ChatIdPage = async ({ params }: Props) => {
 
     return (
         <div className="w-full h-full">
-            <ChatContainer user={user!} chatId={id} messages={messages} />
+            <ChatContainer user={user} chatId={id} messages={messages} />
         </div>
     )
 };

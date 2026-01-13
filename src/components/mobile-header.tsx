@@ -2,13 +2,14 @@ import { Chat } from "@/actions/chat";
 import { cn } from "@/utils";
 import { User } from "@supabase/supabase-js";
 import Link from "next/link";
+import Image from "next/image";
 import Icons from "./global/icons";
 import MobileSidebar from "./mobile-sidebar";
 import { buttonVariants } from "./ui/button";
 import UserAccount from "./user-account";
 
 interface Props {
-    user: User;
+    user: User | null;
     chats: Chat[];
 }
 
@@ -25,7 +26,7 @@ const MobileHeader = ({ user, chats }: Props) => {
 
                 {!user && (
                     <Link href="/">
-                        <Icons.icon className="size-6 block" />
+                        <Image src="/logo.png" alt="Brand Logo" width={32} height={32} className="size-8 block" />
                     </Link>
                 )}
 
