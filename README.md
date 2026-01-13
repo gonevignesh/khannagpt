@@ -5,7 +5,7 @@
 KhannaGPT is your **AI-powered productivity hub**.  
 It can generate code with syntax highlights, to tables, images, and real-time search in chat history
 
-[Watch Demo](https://www.tella.tv/video/shreyass-video-6tsl)
+
 
 ## 🚀 Features
 
@@ -37,16 +37,6 @@ It can generate code with syntax highlights, to tables, images, and real-time se
 - Secure login/logout with Supabase Auth
 
 
-
-## 📸 Screenshots
-
-<!-- Replace with actual images -->
-<!--
-<img width="1446" height="901" alt="Screenshot 2025-08-10 at 7 58 20 PM" src="https://github.com/user-attachments/assets/3461154f-636d-46d4-a200-09d08d262411" />
- <img width="1446" height="901" alt="Screenshot 2025-08-10 at 7 57 54 PM" src="https://github.com/user-attachments/assets/35030668-b1ee-4358-be3e-63e938cb7f09" /> -->
-
-<img width="1446" height="901" alt="Screenshot 2025-08-10 at 8 02 28 PM" src="https://github.com/user-attachments/assets/cc4b15b4-d26c-42d6-9354-e95d3ae7848c" />
-<img width="1446" height="901" alt="Screenshot 2025-08-10 at 8 02 19 PM" src="https://github.com/user-attachments/assets/4cc70ee6-2785-4d26-a291-10b889907c52" />
 
 
 ## 🛠️ Tech Stack
@@ -114,12 +104,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📞 Contact
-
-[Portfolio](https://heyshreyas.in) | [Email](mailto:shreyassihasane@gmail.com)
-
-Project Link: [http://localhost:3000](http://localhost:3000)
